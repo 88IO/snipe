@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "snipe"
+version = "0.1.0"
+description = ""
+authors = ["88IO"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+"discord.py" = {extras = ["voice"], version = "^1.6.0"}
+typing = "^3.7.4"
+python-dotenv = "^0.16.0"
+
+[tool.poetry.dev-dependencies]
+jedi = "^0.18.0"
+pylint = "^2.7.2"
+pydocstyle = "^5.1.1"
+flake8 = "^3.8.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+bot = "snipe.bot:main"
