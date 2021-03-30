@@ -37,13 +37,13 @@ class CmdCog(commands.Cog):
     async def connect(self, ctx):
         if ctx.author.voice:
             self.vc = await ctx.author.voice.channel.connect()
-            self.vc.play(discord.FFmpegPCMAudio("./sounds/connect.wav"), after=lambda e: print("connected"))
+            self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/connect.wav"), after=lambda e: print("connected"))
 
     @snipe.command()
     async def disconnect(self, ctx):
         print("call disconnect()")
         if self.vc.is_connected():
-            self.vc.play(discord.FFmpegPCMAudio("./sounds/disconnect.wav"), after=lambda e: print("disconnected"))
+            self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/disconnect.wav"), after=lambda e: print("disconnected"))
             await self.vc.disconnect()
 
     @snipe.command()

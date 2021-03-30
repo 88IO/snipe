@@ -19,10 +19,6 @@ class Bot(commands.Bot):
                 print("Failed to load extension:", cog)
                 traceback.print_exc()
 
-    async def on_message(self, message):
-        if message.author == self.user:
-            return
-        print("message")
     async def on_ready(self):
         print("ready...")
 
