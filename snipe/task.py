@@ -7,9 +7,9 @@ class Task:
     BEFORE_1MIN = "BEFORE_1MIN"
     BEFORE_3MIN = "BEFORE_3MIN"
 
-    def __init__(self, datetime, member, type):
+    def __init__(self, datetime, members, type):
         self.datetime = datetime
-        self.member = member
+        self.members = members
         self.type = type
 
     @property
@@ -23,14 +23,14 @@ class Task:
         self.__datetime = value
 
     @property
-    def member(self):
-        return self.__member
+    def members(self):
+        return self.__members
 
-    @member.setter
-    def member(self, value):
-        if not isinstance(value, (Member, User)):
-            raise TypeError("type of 'member' must be Union[discord.Member, discord.User]")
-        self.__member = value
+    @members.setter
+    def members(self, value):
+        if not all(map(lambda x: isinstance(x, (User, Member)), value)):
+            raise TypeError("type of 'member' must be Set[discord.Member]")
+        self.__members = value
 
     @property
     def type(self):
