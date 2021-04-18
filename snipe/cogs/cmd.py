@@ -13,7 +13,7 @@ class CmdCog(commands.Cog):
         self.vc = None
         self.loop.start()
 
-    @tasks.loop(seconds=3)
+    @tasks.loop(seconds=5)
     async def loop(self):
         print(self.tasks)
 
