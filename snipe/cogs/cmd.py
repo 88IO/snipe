@@ -45,8 +45,12 @@ class CmdCog(commands.Cog):
     @snipe.command()
     async def clear(self, ctx):
         members = set(ctx.message.mentions) | set([ctx.author])
-        for task in self.tasks:
+
+        def remove_members(task):
             task.members -= members
+            return task.members
+
+        self.tasks = list(filter(remove_members, self.tasks))
         await ctx.send(f"{', '.join(map(lambda m: m.display_name, members))}を予定から削除しました")
 
     @snipe.command()
