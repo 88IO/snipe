@@ -11,6 +11,8 @@ class CmdCog(commands.Cog):
         self.bot = bot
         self.tasks = []
         self.vc = None
+        if not discord.opus.is_loaded():
+            discord.opus.load_opus("heroku-buildpack-libopus")
         self.loop.start()
 
     @tasks.loop(seconds=5)
