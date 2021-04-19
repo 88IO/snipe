@@ -21,6 +21,8 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         print("ready...")
+        await self.change_presence(
+                activity=discord.Activity(type=discord.ActivityType.playing, name="https://github.com/88IO/snipe"))
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
