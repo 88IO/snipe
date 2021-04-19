@@ -22,9 +22,13 @@ class Bot(commands.Bot):
     async def on_ready(self):
         print("ready...")
 
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandNotFound):
+            return
+        raise error
 
 def main():
-    bot = Bot(command_prefix="!")
+    bot = Bot(command_prefix=commands.when_mentioned)
     bot.run(TOKEN)
 
 if __name__ == "__main__":

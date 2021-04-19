@@ -1,9 +1,11 @@
 from discord.ext import commands, tasks
 import discord
+import asyncio
 import heapq as hq
 import datetime
 import re
 from ..task import Task
+from ..emoji import ALARM_CLOCK, TIMER_CLOCK
 
 
 class CmdCog(commands.Cog):
@@ -27,12 +29,76 @@ class CmdCog(commands.Cog):
                     elif task.type == Task.BEFORE_3MIN:
                         await member.send("3分後に通話を強制切断します")
 
-    @commands.group()
-    async def snipe(self, ctx):
-        if ctx.invoked_subcommand is None:
-            await ctx.send("サブコマンドが必要です")
+    async def add_task(self, message, hour, minute, absolute=True):
+        now = datetime.datetime.now()
 
-    @snipe.command()
+        if absolute:
+            hour = now.hour if hour is None else int(hour)
+            minute = now.minute if minute is None else int(minute)
+
+            disconnect_task = Task(
+                now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                + datetime.timedelta(
+                    days=int(datetime.time(hour=hour, minute=minute) < now.time())),
+                set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
+                Task.DISCONNECT)
+
+        else:
+            hour = int(hour) if hour else 0
+            minute = int(minute) if minute else 0
+            disconnect_task = Task(
+                now.replace(microsecond=0)
+                + datetime.timedelta(hours=hour, minutes=minute),
+                set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
+                Task.DISCONNECT)
+        hq.heappush(self.tasks, disconnect_task)
+
+        if disconnect_task.datetime - now > datetime.timedelta(minutes=3):
+            before3min_task = Task(
+                disconnect_task.datetime - datetime.timedelta(minutes=3),
+                disconnect_task.members,
+                Task.BEFORE_3MIN)
+            hq.heappush(self.tasks, before3min_task)
+
+        await message.reply(f"{disconnect_task.datetime}に"
+                + f"{', '.join(map(lambda m: m.display_name, disconnect_task.members))}を切断します")
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        # 自身の場合は無視
+        if message.author == self.bot.user:
+            return
+        if self.bot.user.mentioned_in(message):
+            content = re.sub(r"^<@!?\d+>\s+", "", message.content)
+            if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|h|H|\s^@))?"\
+                                 + r"(?:(?P<minute>\d{1,2})(?:分|m|M|))?", content):
+                if not any(match.group("hour", "minute")):  return
+
+                # アラーム絵文字（絶対）
+                await message.add_reaction(ALARM_CLOCK)
+                # タイマー絵文字（相対）
+                await message.add_reaction(TIMER_CLOCK)
+
+                def reaction_check(reaction, user):
+                    return user == message.author and reaction.emoji in [ALARM_CLOCK, TIMER_CLOCK]
+
+                try:
+                    reaction, _ = await self.bot.wait_for("reaction_add", timeout=60, check=reaction_check)
+                except asyncio.TimeoutError:
+                    print("timeout")
+                    return
+
+                await message.remove_reaction(ALARM_CLOCK, self.bot.user)
+                await message.remove_reaction(TIMER_CLOCK, self.bot.user)
+
+                hour, minute = match.group("hour", "minute")
+                if reaction.emoji == ALARM_CLOCK:
+                    await self.add_task(message=message, hour=hour, minute=minute, absolute=True)
+
+                elif reaction.emoji == TIMER_CLOCK:
+                    await self.add_task(message=message, hour=hour, minute=minute, absolute=False)
+
+    @commands.command()
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
         for task in sorted(self.tasks):
@@ -40,9 +106,9 @@ class CmdCog(commands.Cog):
                 name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
                        + task.datetime.strftime("%m-%d %H:%M"),
                 value=' '.join(map(lambda m: m.display_name, task.members)))
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
-    @snipe.command()
+    @commands.command()
     async def clear(self, ctx):
         members = set(ctx.message.mentions) | set([ctx.author])
 
@@ -51,72 +117,42 @@ class CmdCog(commands.Cog):
             return task.members
 
         self.tasks = list(filter(remove_members, self.tasks))
-        await ctx.send(f"{', '.join(map(lambda m: m.display_name, members))}を予定から削除しました")
+        await ctx.reply(f"{', '.join(map(lambda m: m.display_name, members))}を予定から削除しました")
 
-    @snipe.command()
+    @commands.command()
     async def connect(self, ctx):
         if ctx.author.voice:
             self.vc = await ctx.author.voice.channel.connect()
             self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/connect.wav"), after=lambda _: print("connected"))
 
-    @snipe.command()
+    @commands.command()
     async def disconnect(self, ctx):
         print("call disconnect()")
         if self.vc.is_connected():
             self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/disconnect.wav"), after=lambda _: print("disconnected"))
             await self.vc.disconnect()
 
-    @snipe.command()
+    @commands.command()
     async def reserve(self, ctx, *args):
         t = " ".join(map(str, args))
         if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|h|H|\s^@))?"\
                                  + r"(?:(?P<minute>\d{1,2})(?:分|m|M|))?", t):
             if not any(match.group("hour", "minute")):  return
-            now = datetime.datetime.now()
-            hour = int(h) if (h := match.group("hour")) else now.hour
-            minute = int(m) if (m := match.group("minute")) else now.minute
-            disconnect_task = Task(
-                now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-                + datetime.timedelta(
-                    days=int(datetime.time(hour=hour, minute=minute) < now.time())),
-                set(ctx.message.mentions) | set([ctx.author]),
-                Task.DISCONNECT)
-            hq.heappush(self.tasks, disconnect_task)
 
-            if disconnect_task.datetime - now > datetime.timedelta(minutes=3):
-                before3min_task = Task(
-                    disconnect_task.datetime - datetime.timedelta(minutes=3),
-                    disconnect_task.members,
-                    Task.BEFORE_3MIN)
-                hq.heappush(self.tasks, before3min_task)
+            hour, minute =  match.group("hour", "minute")
 
-            await ctx.send(f"{disconnect_task.datetime}に"
-                    + f"{', '.join(map(lambda m: m.display_name, disconnect_task.members))}を切断します")
+            await self.add_task(message=ctx.message, hour=hour, minute=minute, absolute=True)
 
-    @snipe.command()
+    @commands.command()
     async def reservein(self, ctx, *args):
         t = " ".join(map(str, args))
         if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|h|H|\s^@))?"\
                                  + r"(?:(?P<minute>\d{1,2})(?:分|m|M|))?", t):
             if not any(match.group("hour", "minute")):  return
-            hour, minute = map(lambda x: int(x) if x else 0, match.group("hour", "minute"))
-            disconnect_task = Task(
-                datetime.datetime.now().replace(microsecond=0)
-                  + datetime.timedelta(hours=hour, minutes=minute),
-                set(ctx.message.mentions) | set([ctx.author]),
-                Task.DISCONNECT)
-            hq.heappush(self.tasks, disconnect_task)
 
-            if hour * 60 + minute > 3:
-                before3min_task = Task(
-                    datetime.datetime.now().replace(microsecond=0)
-                    + datetime.timedelta(hours=hour, minutes=minute-3),
-                    disconnect_task.members,
-                    Task.BEFORE_3MIN)
-                hq.heappush(self.tasks, before3min_task)
+            hour, minute =  match.group("hour", "minute")
 
-            await ctx.send(f"{disconnect_task.datetime}に"
-                    + f"{', '.join(map(lambda m: m.display_name, disconnect_task.members))}を切断します")
+            await self.add_task(message=ctx.message, hour=hour, minute=minute, absolute=False)
 
 
 def setup(bot):
