@@ -72,8 +72,8 @@ class CmdCog(commands.Cog):
             return
         if self.bot.user.mentioned_in(message):
             content = re.sub(r"^<@!?\d+>\s+", "", message.content)
-            if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|h|H|\s^@))?"\
-                                 + r"(?:(?P<minute>\d{1,2})(?:分|m|M|))?", content):
+            if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
+                                 + r"(?:(?P<minute>\d{1,2})(?:分|mins|min|m|Mins|Min|M|))?", content):
                 if not any(match.group("hour", "minute")):  return
 
                 # アラーム絵文字（絶対）
@@ -137,8 +137,8 @@ class CmdCog(commands.Cog):
     @commands.command()
     async def reserve(self, ctx, *args):
         t = " ".join(map(str, args))
-        if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|h|H|\s^@))?"\
-                                 + r"(?:(?P<minute>\d{1,2})(?:分|m|M|))?", t):
+        if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
+                                + r"(?:(?P<minute>\d{1,2})(?:分|mins|min|m|Mins|Min|M|))?", t):
             if not any(match.group("hour", "minute")):  return
 
             hour, minute =  match.group("hour", "minute")
@@ -148,8 +148,8 @@ class CmdCog(commands.Cog):
     @commands.command()
     async def reservein(self, ctx, *args):
         t = " ".join(map(str, args))
-        if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|h|H|\s^@))?"\
-                                 + r"(?:(?P<minute>\d{1,2})(?:分|m|M|))?", t):
+        if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
+                                + r"(?:(?P<minute>\d{1,2})(?:分|mins|min|m|Mins|Min|M|))?", t):
             if not any(match.group("hour", "minute")):  return
 
             hour, minute =  match.group("hour", "minute")
