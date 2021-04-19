@@ -88,6 +88,7 @@ class CmdCog(commands.Cog):
                     reaction, _ = await self.bot.wait_for("reaction_add", timeout=60, check=reaction_check)
                 except asyncio.TimeoutError:
                     print("timeout")
+                    await message.reply("タイムアウトしました")
                     return
 
                 await message.remove_reaction(ALARM_CLOCK, self.bot.user)
