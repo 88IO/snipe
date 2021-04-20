@@ -2,7 +2,7 @@ from discord.ext import commands, tasks
 import discord
 import asyncio
 import heapq as hq
-import datetime
+from datetime import datetime, time, timezone, timedelta
 import re
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
@@ -11,6 +11,7 @@ from ..emoji import ALARM_CLOCK, TIMER_CLOCK
 class CmdCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.JST = timezone(timedelta(hours=+9), 'JST')
         self.tasks = []
         self.vc = None
         self.loop.start()
@@ -19,7 +20,7 @@ class CmdCog(commands.Cog):
     async def loop(self):
         print(self.tasks)
 
-        while self.tasks and self.tasks[0].datetime <= datetime.datetime.now():
+        while self.tasks and self.tasks[0].datetime <= datetime.now(self.JST):
             task = hq.heappop(self.tasks)
             for member in task.members:
                 if member.voice:
@@ -32,7 +33,7 @@ class CmdCog(commands.Cog):
                         await member.send("3分後に通話を強制切断します")
 
     async def add_task(self, message, hour, minute, absolute=True):
-        now = datetime.datetime.now()
+        now = datetime.now(self.JST)
 
         if absolute:
             hour = now.hour if hour is None else int(hour)
@@ -40,8 +41,8 @@ class CmdCog(commands.Cog):
 
             disconnect_task = Task(
                 now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-                + datetime.timedelta(
-                    days=int(datetime.time(hour=hour, minute=minute) < now.time())),
+                + timedelta(
+                    days=int(time(hour=hour, minute=minute) < now.time())),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
 
@@ -50,14 +51,14 @@ class CmdCog(commands.Cog):
             minute = int(minute) if minute else 0
             disconnect_task = Task(
                 now.replace(microsecond=0)
-                + datetime.timedelta(hours=hour, minutes=minute),
+                + timedelta(hours=hour, minutes=minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
         hq.heappush(self.tasks, disconnect_task)
 
-        if disconnect_task.datetime - now > datetime.timedelta(minutes=3):
+        if disconnect_task.datetime - now > timedelta(minutes=3):
             before3min_task = Task(
-                disconnect_task.datetime - datetime.timedelta(minutes=3),
+                disconnect_task.datetime - timedelta(minutes=3),
                 disconnect_task.members,
                 Task.BEFORE_3MIN)
             hq.heappush(self.tasks, before3min_task)
