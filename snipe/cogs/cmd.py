@@ -137,6 +137,24 @@ class CmdCog(commands.Cog):
         await ctx.reply(f"{', '.join(map(lambda m: m.display_name, members))}を予定から削除しました")
 
     @commands.command()
+    async def merge(self, ctx):
+        _tasks = []
+        if self.tasks:
+            task = hq.heappop(self.tasks)
+        else:
+            return
+        for _ in range(len(self.tasks) - 1):
+            _task = hq.heappop(self.tasks)
+            if task.datetime == _task.datetime and task.type == _task.type:
+                task.members |= _task.members
+            else:
+                hq.heappush(_tasks, task)
+                task = _task
+
+        self.tasks = _tasks
+        await ctx.reply("予定を一部マージしました")
+
+    @commands.command()
     async def connect(self, ctx):
         if ctx.author.voice:
             self.vc = await ctx.author.voice.channel.connect()
