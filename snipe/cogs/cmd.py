@@ -25,7 +25,7 @@ class CmdCog(commands.Cog):
             for member in task.members:
                 if member.voice:
                     if task.type == Task.DISCONNECT:
-                        await member.send(f"{task.datetime}に通話を強制切断しました")
+                        await member.send(f"{task.datetime.strftime('%m-%d %H:%M:%S')}に通話を強制切断しました")
                         await member.move_to(None)
                     elif task.type == Task.BEFORE_3MIN:
                         if self.vc.is_connected():
@@ -63,7 +63,7 @@ class CmdCog(commands.Cog):
                 Task.BEFORE_3MIN)
             hq.heappush(self.tasks, before3min_task)
 
-        await message.reply(f"{disconnect_task.datetime}に"
+        await message.reply(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
                 + f"{', '.join(map(lambda m: m.display_name, disconnect_task.members))}を切断します")
 
     @commands.Cog.listener()
