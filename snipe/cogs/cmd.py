@@ -15,6 +15,7 @@ class CmdCog(commands.Cog):
         self.tasks = []
         self.vc = None
         self.loop.start()
+        print("aaa")
 
     @tasks.loop(seconds=5)
     async def loop(self):
@@ -25,12 +26,20 @@ class CmdCog(commands.Cog):
             for member in task.members:
                 if member.voice:
                     if task.type == Task.DISCONNECT:
-                        await member.send(f"{task.datetime.strftime('%m-%d %H:%M:%S')}に通話を強制切断しました")
+                        print("DISCONNECT: " + member.display_name)
+                        try:
+                            await member.send(f"{task.datetime.strftime('%m-%d %H:%M:%S')}に通話を強制切断しました")
+                        except discord.errors.HTTPException:
+                            pass
                         await member.move_to(None)
                     elif task.type == Task.BEFORE_3MIN:
+                        print("BEFORE_3MIN: " + member.display_name)
                         if self.vc and self.vc.is_connected():
                             self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
-                        await member.send("3分後に通話を強制切断します")
+                        try:
+                            await member.send("3分後に通話を強制切断します")
+                        except discord.errors.HTTPException:
+                            pass
 
     async def add_task(self, message, hour, minute, absolute=True):
         now = datetime.now(self.JST)
@@ -109,7 +118,7 @@ class CmdCog(commands.Cog):
             embed.add_field(
                 name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
                        + task.datetime.strftime("%m-%d %H:%M"),
-                value=' '.join(map(lambda m: m.display_name, task.members)))
+                value=' '.join(map(lambda m: m.mention, task.members)))
         await ctx.reply(embed=embed)
 
     @commands.command()
