@@ -28,7 +28,7 @@ class CmdCog(commands.Cog):
                         await member.send(f"{task.datetime.strftime('%m-%d %H:%M:%S')}に通話を強制切断しました")
                         await member.move_to(None)
                     elif task.type == Task.BEFORE_3MIN:
-                        if self.vc.is_connected():
+                        if self.vc and self.vc.is_connected():
                             self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
                         await member.send("3分後に通話を強制切断します")
 
@@ -132,7 +132,7 @@ class CmdCog(commands.Cog):
     @commands.command()
     async def disconnect(self, ctx):
         print("call disconnect()")
-        if self.vc.is_connected():
+        if self.vc and self.vc.is_connected():
             self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/disconnect.wav"), after=lambda _: print("disconnected"))
             await self.vc.disconnect()
 
