@@ -50,7 +50,7 @@ class Task:
     def __eq__(self, other):
         if not isinstance(other, Task):
             return NotImplemented
-        return self.datetime == other.datetime
+        return self.type == other.type and self.datetime == other.datetime
 
     def __hash__(self):
         return hash(self.datetime)
