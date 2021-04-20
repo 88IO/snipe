@@ -14,10 +14,8 @@ class CmdCog(commands.Cog):
         self.JST = timezone(timedelta(hours=+9), 'JST')
         self.tasks = []
         self.vc = None
-        self.loop.start()
-        print("aaa")
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=3)
     async def loop(self):
         print(self.tasks)
 
@@ -40,6 +38,9 @@ class CmdCog(commands.Cog):
                             await member.send("3分後に通話を強制切断します")
                         except discord.errors.HTTPException:
                             pass
+
+        if not self.tasks:
+            self.loop.stop()
 
     async def add_task(self, message, hour, minute, absolute=True):
         now = datetime.now(self.JST)
@@ -74,6 +75,9 @@ class CmdCog(commands.Cog):
 
         await message.reply(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
                 + f"{', '.join(map(lambda m: m.display_name, disconnect_task.members))}を切断します")
+
+        if not self.loop.is_running():
+            self.loop.start()
 
     @commands.Cog.listener()
     async def on_message(self, message):
