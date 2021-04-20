@@ -28,7 +28,7 @@ class Task:
 
     @members.setter
     def members(self, value):
-        if not all(map(lambda x: isinstance(x, (User, Member)), value)):
+        if not isinstance(set, value) and not all(map(lambda x: isinstance(x, (User, Member)), value)):
             raise TypeError("type of 'member' must be Set[discord.Member]")
         self.__members = value
 
@@ -46,3 +46,11 @@ class Task:
         if not isinstance(other, Task):
             return NotImplemented
         return self.datetime < other.datetime
+
+    def __eq__(self, other):
+        if not isinstance(other, Task):
+            return NotImplemented
+        return self.datetime == other.datetime
+
+    def __hash__(self):
+        return hash(self.datetime)
