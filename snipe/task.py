@@ -28,7 +28,7 @@ class Task:
 
     @members.setter
     def members(self, value):
-        if not isinstance(set, value) and not all(map(lambda x: isinstance(x, (User, Member)), value)):
+        if not isinstance(value, set) and not all(map(lambda x: isinstance(x, (User, Member)), value)):
             raise TypeError("type of 'member' must be Set[discord.Member]")
         self.__members = value
 
