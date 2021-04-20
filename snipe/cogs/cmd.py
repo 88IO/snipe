@@ -139,20 +139,22 @@ class CmdCog(commands.Cog):
     @commands.command()
     async def merge(self, ctx):
         _tasks = []
-        if self.tasks:
+        if len(self.tasks) >= 2:
             task = hq.heappop(self.tasks)
         else:
             return
-        for _ in range(len(self.tasks) - 1):
+        for i in range(n := len(self.tasks)):
             _task = hq.heappop(self.tasks)
             if task.datetime == _task.datetime and task.type == _task.type:
                 task.members |= _task.members
-            else:
-                hq.heappush(_tasks, task)
-                task = _task
+                if i == n - 1:
+                    hq.heappush(_tasks, task)
+                continue
+            hq.heappush(_tasks, task)
+            task = _task
 
         self.tasks = _tasks
-        await ctx.reply("予定を一部マージしました")
+        await ctx.reply("同一予定をマージしました")
 
     @commands.command()
     async def connect(self, ctx):
