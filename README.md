@@ -38,7 +38,7 @@ pip install poetry
 
 #### 1. Discord Botを作成 & サーバーに招待
 
-詳細は [こちら](https://discordpy.readthedocs.io/ja/latest/discord.html#:~:text=Make%20sure%20you're%20logged%20on%20to%20the%20Discord%20website.&text=%E3%80%8CNew%20Application%E3%80%8D%E3%83%9C%E3%82%BF%E3%83%B3%E3%82%92%E3%82%AF%E3%83%AA%E3%83%83%E3%82%AF,%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%97%E3%81%BE%E3%81%99%E3%80%82) を参考
+詳細は [こちら](https://discordpy.readthedocs.io/ja/latest/discord.html#:~:text=Make%20sure%20you're%20logged%20on%20to%20the%20Discord%20website.&text=%E3%80%8CNew%20Application%E3%80%8D%E3%83%9C%E3%82%BF%E3%83%B3%E3%82%92%E3%82%AF%E3%83%AA%E3%83%83%E3%82%AF,%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%97%E3%81%BE%E3%81%99%E3%80%82) 
 
 **メモ: Bot TOKEN**
 
@@ -90,7 +90,7 @@ Botを`snipebot`として進める。（`@snipebot`はメンション）
 **短縮形式**
 
 ```
-@snipebot XX;XX
+@snipebot XX:XX
 ```
 
 1. Botが上記メッセージに⏰（アラーム）と ⏲️（タイマー）のリアクションを付与
