@@ -1,5 +1,7 @@
 ![snipe](https://user-images.githubusercontent.com/36104864/115669007-c3bdbd80-a382-11eb-908e-ec4a9e7d9aba.png)
 
+[![GitHub license](https://img.shields.io/github/license/88IO/snipe)](https://github.com/88IO/snipe/blob/master/LICENSE)
+
 # 🔫 discordbot-snipe
 
 予め設定した時刻に通話を強制切断するDiscord Botです。
