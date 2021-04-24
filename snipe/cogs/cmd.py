@@ -96,7 +96,9 @@ class CmdCog(commands.Cog):
                 await message.add_reaction(TIMER_CLOCK)
 
                 def reaction_check(reaction, user):
-                    return user == message.author and reaction.emoji in [ALARM_CLOCK, TIMER_CLOCK]
+                    return (user == message.author
+                            and reaction.message == message
+                            and reaction.emoji in [ALARM_CLOCK, TIMER_CLOCK])
 
                 try:
                     reaction, _ = await self.bot.wait_for("reaction_add", timeout=60, check=reaction_check)
