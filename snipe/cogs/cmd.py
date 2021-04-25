@@ -13,8 +13,8 @@ class CmdCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.JST = timezone(timedelta(hours=+9), 'JST')
-        self.tasks = {}
-        self.vc = {}
+        self.tasks = {guild.id:[] for guild in self.bot.guilds}
+        self.vc = {guild.id:None for guild in self.bot.guilds}
 
     tasks.loop(seconds=3)
     async def loop(self):
@@ -133,6 +133,7 @@ class CmdCog(commands.Cog):
                 elif reaction.emoji == TIMER_CLOCK:
                     await self.add_task(message=message, hour=hour, minute=minute, absolute=False)
 
+    '''
     @commands.command()
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
@@ -142,6 +143,7 @@ class CmdCog(commands.Cog):
                        + task.datetime.strftime("%m-%d %H:%M"),
                 value=' '.join(map(lambda m: m.mention, task.members)))
         await ctx.reply(embed=embed)
+    '''
 
     @commands.command()
     async def clear(self, ctx):
@@ -154,27 +156,51 @@ class CmdCog(commands.Cog):
         self.tasks[ctx.guild.id] = list(filter(remove_members, self.tasks[ctx.guild.id]))
         await ctx.reply(f"{', '.join(map(lambda m: m.mention, members))}を予定から削除しました")
 
-    '''
     @commands.command()
-    async def merge(self, ctx):
-        _tasks = []
-        if len(self.tasks) >= 2:
-            task = hq.heappop(self.tasks)
-        else:
+    async def show(self, ctx):
+    #async def merge(self, ctx):
+        embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
+
+        _tasks = self.tasks[ctx.guild.id]
+        merged_tasks = []
+
+        if len(_tasks) > 1:
+            task = hq.heappop(_tasks)
+        elif len(_tasks) == 1:
+            task = hq.heappop(_tasks)
+            embed.add_field(
+                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
+                    + task.datetime.strftime("%m-%d %H:%M"),
+                value=' '.join(map(lambda m: m.mention, task.members)))
+            await ctx.reply(embed=embed)
             return
-        for i in range(n := len(self.tasks)):
-            _task = hq.heappop(self.tasks)
+        else:
+            await ctx.reply(embed=embed)
+            return
+
+        for i in range(n := len(_tasks)):
+            _task = hq.heappop(_tasks)
+
             if task.datetime == _task.datetime and task.type == _task.type:
                 task.members |= _task.members
                 if i == n - 1:
-                    hq.heappush(_tasks, task)
+                    hq.heappush(merged_tasks, task)
+                    embed.add_field(
+                        name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
+                            + task.datetime.strftime("%m-%d %H:%M"),
+                        value=' '.join(map(lambda m: m.mention, task.members)))
                 continue
-            hq.heappush(_tasks, task)
+
+            hq.heappush(merged_tasks, task)
+            embed.add_field(
+                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
+                       + task.datetime.strftime("%m-%d %H:%M"),
+                value=' '.join(map(lambda m: m.mention, task.members)))
+
             task = _task
 
-        self.tasks = _tasks
-        await ctx.reply("同一予定をマージしました")
-    '''
+        _tasks = merged_tasks
+        await ctx.reply(embed=embed)
 
     @commands.command()
     async def connect(self, ctx):
