@@ -175,7 +175,7 @@ class CmdCog(commands.Cog):
                         + ta.datetime.strftime("%m-%d %H:%M"),
                     value=' '.join(map(lambda m: m.mention, ta.members)))
 
-        _tasks = merged_tasks
+        self.tasks[ctx.guild.id] = merged_tasks
         await ctx.reply(embed=embed)
 
     @commands.command()
