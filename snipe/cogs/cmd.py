@@ -1,9 +1,10 @@
-from discord.ext import commands, tasks
 import discord
 import asyncio
 import heapq as hq
-from datetime import datetime, time, timezone, timedelta
 import re
+from discord.ext import commands, tasks
+from datetime import datetime, time, timezone, timedelta
+from itertools import chain
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
 
@@ -12,15 +13,26 @@ class CmdCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.JST = timezone(timedelta(hours=+9), 'JST')
-        self.tasks = []
-        self.vc = None
+        self.tasks = {}
+        self.vc = {}
 
-    @tasks.loop(seconds=3)
+    tasks.loop(seconds=3)
     async def loop(self):
         print(self.tasks)
+        tasks_values = self.tasks.values()
 
-        while self.tasks and self.tasks[0].datetime <= datetime.now(self.JST):
-            task = hq.heappop(self.tasks)
+        async def get_executable(guild_tasks):
+            executable_tasks = []
+
+            while guild_tasks and guild_tasks[0].datetime <= datetime.now(self.JST):
+                executable_tasks.append(hq.heappop(guild_tasks))
+
+            return executable_tasks
+
+        executable_tasks = chain.from_iterable(
+                await asyncio.gather(*[get_executable(guild_tasks) for guild_tasks in tasks_values]))
+
+        for task in executable_tasks:
             for member in task.members:
                 if member.voice:
                     if task.type == Task.DISCONNECT:
@@ -32,15 +44,19 @@ class CmdCog(commands.Cog):
                         await member.move_to(None)
                     elif task.type == Task.BEFORE_3MIN:
                         print("BEFORE_3MIN: " + member.display_name)
-                        if self.vc and self.vc.is_connected():
-                            self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
+                        _vc = self.vc[task.member.guild.id]
+                        if _vc and _vc.is_connected():
+                            _vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
                         try:
                             await member.send("3分後に通話を強制切断します")
                         except discord.errors.HTTPException:
                             pass
 
-        if not self.tasks:
-            self.loop.stop()
+        for guild_tasks in tasks_values:
+            if len(guild_tasks):
+                return
+
+        self.loop.stop()
 
     async def add_task(self, message, hour, minute, absolute=True):
         now = datetime.now(self.JST)
@@ -64,17 +80,17 @@ class CmdCog(commands.Cog):
                 + timedelta(hours=hour, minutes=minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
-        hq.heappush(self.tasks, disconnect_task)
+        hq.heappush(self.tasks[message.guild.id], disconnect_task)
 
         if disconnect_task.datetime - now > timedelta(minutes=3):
             before3min_task = Task(
                 disconnect_task.datetime - timedelta(minutes=3),
                 disconnect_task.members,
                 Task.BEFORE_3MIN)
-            hq.heappush(self.tasks, before3min_task)
+            hq.heappush(self.tasks[message.guild.id], before3min_task)
 
         await message.reply(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
-                + f"{', '.join(map(lambda m: m.display_name, disconnect_task.members))}を切断します")
+                + f"{', '.join(map(lambda m: m.mention, disconnect_task.members))}を切断します")
 
         if not self.loop.is_running():
             self.loop.start()
@@ -120,7 +136,7 @@ class CmdCog(commands.Cog):
     @commands.command()
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
-        for task in sorted(self.tasks):
+        for task in sorted(self.tasks[ctx.guild.id]):
             embed.add_field(
                 name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
                        + task.datetime.strftime("%m-%d %H:%M"),
@@ -135,9 +151,10 @@ class CmdCog(commands.Cog):
             task.members -= members
             return task.members
 
-        self.tasks = list(filter(remove_members, self.tasks))
-        await ctx.reply(f"{', '.join(map(lambda m: m.display_name, members))}を予定から削除しました")
+        self.tasks[ctx.guild.id] = list(filter(remove_members, self.tasks[ctx.guild.id]))
+        await ctx.reply(f"{', '.join(map(lambda m: m.mention, members))}を予定から削除しました")
 
+    '''
     @commands.command()
     async def merge(self, ctx):
         _tasks = []
@@ -157,19 +174,22 @@ class CmdCog(commands.Cog):
 
         self.tasks = _tasks
         await ctx.reply("同一予定をマージしました")
+    '''
 
     @commands.command()
     async def connect(self, ctx):
+        print("call connect()")
         if ctx.author.voice:
-            self.vc = await ctx.author.voice.channel.connect()
-            self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/connect.wav"), after=lambda _: print("connected"))
+            self.vc[ctx.guild.id] = await ctx.author.voice.channel.connect()
+            self.vc[ctx.guild.id].play(discord.FFmpegPCMAudio("snipe/sounds/connect.wav"), after=lambda _: print("connected"))
 
     @commands.command()
     async def disconnect(self, ctx):
         print("call disconnect()")
-        if self.vc and self.vc.is_connected():
-            self.vc.play(discord.FFmpegPCMAudio("snipe/sounds/disconnect.wav"), after=lambda _: print("disconnected"))
-            await self.vc.disconnect()
+        _vc = self.vc[ctx.guild.id]
+        if _vc and _vc.is_connected():
+            _vc.play(discord.FFmpegPCMAudio("snipe/sounds/disconnect.wav"), after=lambda _: print("disconnected"))
+            await _vc.disconnect()
 
     @commands.command()
     async def reserve(self, ctx, *args):
