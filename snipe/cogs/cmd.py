@@ -58,9 +58,9 @@ class CmdCog(commands.Cog):
                         await member.move_to(None)
                     elif task.type == Task.BEFORE_3MIN:
                         print("BEFORE_3MIN: " + member.display_name)
-                        _vc = self.vc[task.member.guild.id]
-                        if _vc and _vc.is_connected():
-                            _vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
+                        #_vc = self.vc[member.guild.id]
+                        #if _vc and _vc.is_connected():
+                        #    _vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
                         try:
                             await member.send("3分後に通話を強制切断します")
                         except discord.errors.HTTPException:
