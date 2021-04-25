@@ -14,10 +14,24 @@ class CmdCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.JST = timezone(timedelta(hours=+9), 'JST')
+        self.tasks = {}
+        self.vc = {}
+
+    @commands.Cog.listener()
+    async def on_ready(self):
         self.tasks = {guild.id:[] for guild in self.bot.guilds}
         self.vc = {guild.id:None for guild in self.bot.guilds}
 
-    tasks.loop(seconds=3)
+        print("Finish Loading... ready...")
+        await self.bot.change_presence(
+                activity=discord.Activity(type=discord.ActivityType.playing, name="https://github.com/88IO/snipe"))
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        self.tasks[guild.id] = []
+        self.vc[guild.id] = None
+
+    @tasks.loop(seconds=3)
     async def loop(self):
         print(self.tasks)
         tasks_values = self.tasks.values()
