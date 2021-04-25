@@ -4,7 +4,6 @@ import heapq as hq
 import re
 from discord.ext import commands, tasks
 from datetime import datetime, time, timezone, timedelta
-from functools import reduce
 from itertools import chain
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
@@ -155,7 +154,9 @@ class CmdCog(commands.Cog):
         _tasks = self.tasks[ctx.guild.id]
         merged_tasks = []
 
-        def merge(ta, tb):
+        ta = None
+        for i in range(n := len(_tasks)):
+            tb = hq.heappop(_tasks)
             if ta:
                 if ta.datetime == tb.datetime and ta.type == tb.type:
                     tb.members |= ta.members
@@ -165,16 +166,14 @@ class CmdCog(commands.Cog):
                         name=f"{'強制切断' if ta.type == Task.DISCONNECT else '3分前連絡'}: "
                             + ta.datetime.strftime("%m-%d %H:%M"),
                         value=' '.join(map(lambda m: m.mention, ta.members)))
-            return tb
+            ta = tb
 
-        _last = reduce(merge, _tasks, None)
-
-        if _last:
-            hq.heappush(merged_tasks, _last)
-            embed.add_field(
-                name=f"{'強制切断' if _last.type == Task.DISCONNECT else '3分前連絡'}: "
-                    + _last.datetime.strftime("%m-%d %H:%M"),
-                value=' '.join(map(lambda m: m.mention, _last.members)))
+            if i == n - 1:
+                hq.heappush(merged_tasks, ta)
+                embed.add_field(
+                    name=f"{'強制切断' if ta.type == Task.DISCONNECT else '3分前連絡'}: "
+                        + ta.datetime.strftime("%m-%d %H:%M"),
+                    value=' '.join(map(lambda m: m.mention, ta.members)))
 
         _tasks = merged_tasks
         await ctx.reply(embed=embed)
