@@ -4,6 +4,7 @@ import heapq as hq
 import re
 from discord.ext import commands, tasks
 from datetime import datetime, time, timezone, timedelta
+from functools import reduce
 from itertools import chain
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
@@ -133,17 +134,36 @@ class CmdCog(commands.Cog):
                 elif reaction.emoji == TIMER_CLOCK:
                     await self.add_task(message=message, hour=hour, minute=minute, absolute=False)
 
-    '''
     @commands.command()
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
-        for task in sorted(self.tasks[ctx.guild.id]):
+
+        _tasks = self.tasks[ctx.guild.id]
+        merged_tasks = []
+
+        def merge(ta, tb):
+            if ta:
+                if ta.datetime == tb.datetime and ta.type == tb.type:
+                    tb.members |= ta.members
+                else:
+                    hq.heappush(merged_tasks, ta)
+                    embed.add_field(
+                        name=f"{'強制切断' if ta.type == Task.DISCONNECT else '3分前連絡'}: "
+                            + ta.datetime.strftime("%m-%d %H:%M"),
+                        value=' '.join(map(lambda m: m.mention, ta.members)))
+            return tb
+
+        _last = reduce(merge, _tasks, None)
+
+        if _last:
+            hq.heappush(merged_tasks, _last)
             embed.add_field(
-                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
-                       + task.datetime.strftime("%m-%d %H:%M"),
-                value=' '.join(map(lambda m: m.mention, task.members)))
+                name=f"{'強制切断' if _last.type == Task.DISCONNECT else '3分前連絡'}: "
+                    + _last.datetime.strftime("%m-%d %H:%M"),
+                value=' '.join(map(lambda m: m.mention, _last.members)))
+
+        _tasks = merged_tasks
         await ctx.reply(embed=embed)
-    '''
 
     @commands.command()
     async def clear(self, ctx):
@@ -155,52 +175,6 @@ class CmdCog(commands.Cog):
 
         self.tasks[ctx.guild.id] = list(filter(remove_members, self.tasks[ctx.guild.id]))
         await ctx.reply(f"{', '.join(map(lambda m: m.mention, members))}を予定から削除しました")
-
-    @commands.command()
-    async def show(self, ctx):
-    #async def merge(self, ctx):
-        embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
-
-        _tasks = self.tasks[ctx.guild.id]
-        merged_tasks = []
-
-        if len(_tasks) > 1:
-            task = hq.heappop(_tasks)
-        elif len(_tasks) == 1:
-            task = hq.heappop(_tasks)
-            embed.add_field(
-                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
-                    + task.datetime.strftime("%m-%d %H:%M"),
-                value=' '.join(map(lambda m: m.mention, task.members)))
-            await ctx.reply(embed=embed)
-            return
-        else:
-            await ctx.reply(embed=embed)
-            return
-
-        for i in range(n := len(_tasks)):
-            _task = hq.heappop(_tasks)
-
-            if task.datetime == _task.datetime and task.type == _task.type:
-                task.members |= _task.members
-                if i == n - 1:
-                    hq.heappush(merged_tasks, task)
-                    embed.add_field(
-                        name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
-                            + task.datetime.strftime("%m-%d %H:%M"),
-                        value=' '.join(map(lambda m: m.mention, task.members)))
-                continue
-
-            hq.heappush(merged_tasks, task)
-            embed.add_field(
-                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
-                       + task.datetime.strftime("%m-%d %H:%M"),
-                value=' '.join(map(lambda m: m.mention, task.members)))
-
-            task = _task
-
-        _tasks = merged_tasks
-        await ctx.reply(embed=embed)
 
     @commands.command()
     async def connect(self, ctx):
