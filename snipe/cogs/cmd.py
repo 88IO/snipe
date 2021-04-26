@@ -76,22 +76,23 @@ class CmdCog(commands.Cog):
         now = datetime.now(self.JST)
 
         if absolute:
-            hour = now.hour if hour is None else int(hour)
-            minute = now.minute if minute is None else int(minute)
+            _minute = int(minute) if minute else 0
+            _hour = int(hour) if hour else now.hour if _minute > now.minute else (now.hour + 1)
 
             disconnect_task = Task(
-                now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                now.replace(hour=0, minute=0, second=0)
                 + timedelta(
-                    days=int(time(hour=hour, minute=minute) < now.time())),
+                    days=int(_hour < 24 and time(hour=_hour, minute=_minute) < now.time()),
+                    hours=_hour, minutes=_minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
 
         else:
             hour = int(hour) if hour else 0
             minute = int(minute) if minute else 0
+
             disconnect_task = Task(
-                now.replace(microsecond=0)
-                + timedelta(hours=hour, minutes=minute),
+                now + timedelta(hours=hour, minutes=minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
         hq.heappush(self.tasks[message.guild.id], disconnect_task)
@@ -158,7 +159,7 @@ class CmdCog(commands.Cog):
         for i in range(n := len(_tasks)):
             tb = hq.heappop(_tasks)
             if ta:
-                if ta.datetime == tb.datetime and ta.type == tb.type:
+                if ta.id == tb.id:
                     tb.members |= ta.members
                 else:
                     hq.heappush(merged_tasks, ta)
