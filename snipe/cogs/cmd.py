@@ -181,7 +181,7 @@ class CmdCog(commands.Cog):
 
     @commands.command()
     async def clear(self, ctx):
-        members = set(ctx.message.mentions) | set([ctx.author])
+        members = set(filter(lambda m: m.id != self.bot.user.id, ctx.message.mentions)) | set([ctx.author])
 
         def remove_members(task):
             task.members -= members
