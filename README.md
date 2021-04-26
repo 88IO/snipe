@@ -26,7 +26,7 @@
 
 * [Python >= 3.9](https://www.python.org/)
   * Python 3.8以降でも動作可
-  * pip等で`discord.py[voice]`, `python-dotenv`をインストールする必要あり
+    * pip等で`discord.py[voice]`, `python-dotenv`をインストールする必要あり
 * [Poetry](https://github.com/python-poetry/poetry)
 
 ```bash
