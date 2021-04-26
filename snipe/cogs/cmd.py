@@ -86,15 +86,15 @@ class CmdCog(commands.Cog):
                     hours=_hour, minutes=_minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
-
         else:
-            hour = int(hour) if hour else 0
-            minute = int(minute) if minute else 0
+            _hour = int(hour) if hour else 0
+            _minute = int(minute) if minute else 0
 
             disconnect_task = Task(
-                now + timedelta(hours=hour, minutes=minute),
+                now + timedelta(hours=_hour, minutes=_minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
+
         hq.heappush(self.tasks[message.guild.id], disconnect_task)
 
         if disconnect_task.datetime - now > timedelta(minutes=3):
