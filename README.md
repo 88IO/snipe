@@ -20,12 +20,13 @@
 - 通話切断３分前、切断時にDMで通知
 - 自分の予約を全削除
 - BotのVC参加
-  - 切断３分前に機械音声で通知
+  - ~~切断３分前に機械音声で通知~~
 
 ## 要件
 
 * [Python >= 3.9](https://www.python.org/)
-
+  * Python 3.8でも動作可
+    * discord.py[voice], python-dotenvをインストールする必要あり
 * [Poetry](https://github.com/python-poetry/poetry)
 
 ```bash
@@ -37,6 +38,10 @@ pip install poetry
 ## セットアップ
 
 #### 1. Discord Botを作成 & サーバーに招待
+
+必要権限
+
+![](https://user-images.githubusercontent.com/36104864/116031938-b746a700-a699-11eb-90b3-4586bc77e2fe.png)
 
 詳細は [こちら](https://discordpy.readthedocs.io/ja/latest/discord.html#:~:text=Make%20sure%20you're%20logged%20on%20to%20the%20Discord%20website.&text=%E3%80%8CNew%20Application%E3%80%8D%E3%83%9C%E3%82%BF%E3%83%B3%E3%82%92%E3%82%AF%E3%83%AA%E3%83%83%E3%82%AF,%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%97%E3%81%BE%E3%81%99%E3%80%82) 
 
