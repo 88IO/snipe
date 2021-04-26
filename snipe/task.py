@@ -3,14 +3,15 @@ from datetime import datetime as Datetime
 
 
 class Task:
-    DISCONNECT = "DISCONNECT"
-    BEFORE_1MIN = "BEFORE_1MIN"
-    BEFORE_3MIN = "BEFORE_3MIN"
+    DISCONNECT = 0
+    BEFORE_1MIN = 1
+    BEFORE_3MIN = 2
 
     def __init__(self, datetime, members, type):
         self.datetime = datetime
         self.members = members
         self.type = type
+        self.id = self.datetime.timestamp() + 0.1 * self.type
 
     @property
     def datetime(self):
@@ -20,7 +21,7 @@ class Task:
     def datetime(self, value):
         if not isinstance(value, Datetime):
             raise TypeError("type of 'datetime' must be datetime.datetime")
-        self.__datetime = value
+        self.__datetime = value.replace(microsecond=0)
 
     @property
     def members(self):
@@ -45,4 +46,4 @@ class Task:
     def __lt__(self, other):
         if not isinstance(other, Task):
             return NotImplemented
-        return self.datetime < other.datetime
+        return self.id < other.id
