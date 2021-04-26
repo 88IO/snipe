@@ -46,4 +46,4 @@ class Task:
     def __lt__(self, other):
         if not isinstance(other, Task):
             return NotImplemented
-        return self.datetime < other.datetime
+        return self.id < other.id
