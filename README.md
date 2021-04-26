@@ -6,7 +6,7 @@
 
 予め設定した時刻に通話を強制切断するDiscord Botです。
 
-話が弾んで離席しずらい状況になったことはありませんか。指定時刻に電話が鳴るアプリで会食から退出しやすくするアイデアを基にし、本プロジェクトはボイスチャット版を想定して開発しています。
+ボイスチャットで話が弾んで離席しずらい状況になったことはあります。本プロダクトは指定時刻に電話が鳴るアプリで会食から退出しやすくするアイデアを基にし、VC版としての利用を想定しています。
 
 ## デモ
 
@@ -25,7 +25,8 @@
 ## 要件
 
 * [Python >= 3.9](https://www.python.org/)
-
+  * Python 3.8以降でも動作可
+  * pip等で`discord.py[voice]`, `python-dotenv`をインストールする必要あり
 * [Poetry](https://github.com/python-poetry/poetry)
 
 ```bash
@@ -38,7 +39,11 @@ pip install poetry
 
 #### 1. Discord Botを作成 & サーバーに招待
 
-詳細は [こちら](https://discordpy.readthedocs.io/ja/latest/discord.html#:~:text=Make%20sure%20you're%20logged%20on%20to%20the%20Discord%20website.&text=%E3%80%8CNew%20Application%E3%80%8D%E3%83%9C%E3%82%BF%E3%83%B3%E3%82%92%E3%82%AF%E3%83%AA%E3%83%83%E3%82%AF,%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%97%E3%81%BE%E3%81%99%E3%80%82) 
+必要権限
+
+![](https://user-images.githubusercontent.com/36104864/116031938-b746a700-a699-11eb-90b3-4586bc77e2fe.png)
+
+詳細は [こちら](https://discordpy.readthedocs.io/ja/latest/discord.html#:~:text=Make%20sure%20you're%20logged%20on%20to%20the%20Discord%20website.&text=%E3%80%8CNew%20Application%E3%80%8D%E3%83%9C%E3%82%BF%E3%83%B3%E3%82%92%E3%82%AF%E3%83%AA%E3%83%83%E3%82%AF,%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%82%92%E4%BD%9C%E6%88%90%E3%81%97%E3%81%BE%E3%81%99%E3%80%82)
 
 **メモ: Bot TOKEN**
 
