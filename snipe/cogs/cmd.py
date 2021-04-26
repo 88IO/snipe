@@ -46,24 +46,25 @@ class CmdCog(commands.Cog):
         now = datetime.now(self.JST)
 
         if absolute:
-            hour = now.hour if hour is None else int(hour)
-            minute = now.minute if minute is None else int(minute)
+            _minute = int(minute) if minute else 0
+            _hour = int(hour) if hour else now.hour if _minute > now.minute else (now.hour + 1)
 
             disconnect_task = Task(
-                now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                now.replace(hour=0, minute=0, second=0)
                 + timedelta(
-                    days=int(time(hour=hour, minute=minute) < now.time())),
+                    days=int(_hour < 24 and time(hour=_hour, minute=_minute) < now.time()),
+                    hours=_hour, minutes=_minute),
+                set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
+                Task.DISCONNECT)
+        else:
+            _hour = int(hour) if hour else 0
+            _minute = int(minute) if minute else 0
+
+            disconnect_task = Task(
+                now + timedelta(hours=_hour, minutes=_minute),
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
 
-        else:
-            hour = int(hour) if hour else 0
-            minute = int(minute) if minute else 0
-            disconnect_task = Task(
-                now.replace(microsecond=0)
-                + timedelta(hours=hour, minutes=minute),
-                set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
-                Task.DISCONNECT)
         hq.heappush(self.tasks, disconnect_task)
 
         if disconnect_task.datetime - now > timedelta(minutes=3):
@@ -129,7 +130,7 @@ class CmdCog(commands.Cog):
 
     @commands.command()
     async def clear(self, ctx):
-        members = set(ctx.message.mentions) | set([ctx.author])
+        members = set(filter(lambda m: m.id != self.bot.user.id, ctx.message.mentions)) | set([ctx.author])
 
         def remove_members(task):
             task.members -= members
