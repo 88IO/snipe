@@ -99,6 +99,8 @@ class CmdCog(commands.Cog):
             for i, t in enumerate(self.tasks[message.guild.id]):
                 if new <= t:
                     tasks.insert(i, new)
+                    return
+            tasks.append(new)
 
         insert_task(self.tasks[message.guild.id], disconnect_task)
 
@@ -166,9 +168,12 @@ class CmdCog(commands.Cog):
                         name=f"{'強制切断' if last.type == Task.DISCONNECT else '3分前連絡'}: "
                             + last.datetime.strftime("%m-%d %H:%M"),
                         value=' '.join(map(lambda m: m.mention, last.members)))
-
                     merged_queue.append(task)
             else:
+                embed.add_field(
+                    name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
+                        + task.datetime.strftime("%m-%d %H:%M"),
+                    value=' '.join(map(lambda m: m.mention, task.members)))
                 merged_queue.append(task)
 
             return merged_queue
