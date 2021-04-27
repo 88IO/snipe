@@ -1,10 +1,10 @@
 import discord
 import asyncio
-import heapq as hq
 import re
 from discord.ext import commands, tasks
 from datetime import datetime, time, timezone, timedelta
 from itertools import chain
+from collections import deque
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
 
@@ -18,7 +18,7 @@ class CmdCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.tasks = {guild.id:[] for guild in self.bot.guilds}
+        self.tasks = {guild.id:deque() for guild in self.bot.guilds}
         self.vc = {guild.id:None for guild in self.bot.guilds}
 
         print("Finish Loading... ready...")
@@ -27,7 +27,7 @@ class CmdCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        self.tasks[guild.id] = []
+        self.tasks[guild.id] = deque()
         self.vc[guild.id] = None
 
     @tasks.loop(seconds=3)
@@ -36,15 +36,14 @@ class CmdCog(commands.Cog):
         tasks_values = self.tasks.values()
 
         async def get_executable(guild_tasks):
-            executable_tasks = []
+            now = datetime.now(self.JST)
 
-            while guild_tasks and guild_tasks[0].datetime <= datetime.now(self.JST):
-                executable_tasks.append(hq.heappop(guild_tasks))
+            executable_tasks = (guild_tasks.popleft() for task in guild_tasks if task.datetime <= now)
 
             return executable_tasks
 
         executable_tasks = chain.from_iterable(
-                await asyncio.gather(*[get_executable(guild_tasks) for guild_tasks in tasks_values]))
+                await asyncio.gather(*(get_executable(guild_tasks) for guild_tasks in tasks_values)))
 
         for task in executable_tasks:
             for member in task.members:
@@ -95,16 +94,24 @@ class CmdCog(commands.Cog):
                 set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
                 Task.DISCONNECT)
 
-        hq.heappush(self.tasks, disconnect_task)
+        def insert_task(tasks, new):
+            for i, t in enumerate(self.tasks[message.guild.id]):
+                if new == t:
+                    t.members |= new.members
+                    return
+                elif new < t:
+                    tasks.insert(i, new)
+                    return
+            tasks.append(new)
 
-        hq.heappush(self.tasks[message.guild.id], disconnect_task)
+        insert_task(self.tasks[message.guild.id], disconnect_task)
 
         if disconnect_task.datetime - now > timedelta(minutes=3):
             before3min_task = Task(
                 disconnect_task.datetime - timedelta(minutes=3),
                 disconnect_task.members,
                 Task.BEFORE_3MIN)
-            hq.heappush(self.tasks[message.guild.id], before3min_task)
+            insert_task(self.tasks[message.guild.id], before3min_task)
 
         await message.reply(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
                 + f"{', '.join(map(lambda m: m.mention, disconnect_task.members))}を切断します")
@@ -154,31 +161,12 @@ class CmdCog(commands.Cog):
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
 
-        _tasks = self.tasks[ctx.guild.id]
-        merged_tasks = []
+        for task in self.tasks[ctx.guild.id]:
+            embed.add_field(
+                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
+                    + task.datetime.strftime("%m-%d %H:%M"),
+                value=' '.join(map(lambda m: m.mention, task.members)))
 
-        ta = None
-        for i in range(n := len(_tasks)):
-            tb = hq.heappop(_tasks)
-            if ta:
-                if ta.id == tb.id:
-                    tb.members |= ta.members
-                else:
-                    hq.heappush(merged_tasks, ta)
-                    embed.add_field(
-                        name=f"{'強制切断' if ta.type == Task.DISCONNECT else '3分前連絡'}: "
-                            + ta.datetime.strftime("%m-%d %H:%M"),
-                        value=' '.join(map(lambda m: m.mention, ta.members)))
-            ta = tb
-
-            if i == n - 1:
-                hq.heappush(merged_tasks, ta)
-                embed.add_field(
-                    name=f"{'強制切断' if ta.type == Task.DISCONNECT else '3分前連絡'}: "
-                        + ta.datetime.strftime("%m-%d %H:%M"),
-                    value=' '.join(map(lambda m: m.mention, ta.members)))
-
-        self.tasks[ctx.guild.id] = merged_tasks
         await ctx.reply(embed=embed)
 
     @commands.command()
@@ -189,7 +177,7 @@ class CmdCog(commands.Cog):
             task.members -= members
             return task.members
 
-        self.tasks[ctx.guild.id] = list(filter(remove_members, self.tasks[ctx.guild.id]))
+        self.tasks[ctx.guild.id] = deque(filter(remove_members, self.tasks[ctx.guild.id]))
         await ctx.reply(f"{', '.join(map(lambda m: m.mention, members))}を予定から削除しました")
 
     @commands.command()

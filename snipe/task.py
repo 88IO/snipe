@@ -47,3 +47,13 @@ class Task:
         if not isinstance(other, Task):
             return NotImplemented
         return self.id < other.id
+
+    def __le__(self, other):
+        if not isinstance(other, Task):
+            return NotImplemented
+        return self.id <= other.id
+
+    def __eq__(self, other):
+        if not isinstance(other, Task):
+            return NotImplemented
+        return self.id == other.id
