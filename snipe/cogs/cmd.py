@@ -38,7 +38,7 @@ class CmdCog(commands.Cog):
         async def get_executable(guild_tasks):
             now = datetime.now(self.JST)
 
-            executable_tasks = (guild_tasks.popleft() for task in guild_tasks if task.datetime <= now)
+            executable_tasks = (guild_tasks.popleft() for _ in range(len(guild_tasks)) if guild_tasks[0].datetime <= now)
 
             return executable_tasks
 
