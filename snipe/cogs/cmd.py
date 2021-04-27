@@ -5,7 +5,6 @@ from discord.ext import commands, tasks
 from datetime import datetime, time, timezone, timedelta
 from itertools import chain
 from collections import deque
-from functools import reduce
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
 
@@ -97,7 +96,10 @@ class CmdCog(commands.Cog):
 
         def insert_task(tasks, new):
             for i, t in enumerate(self.tasks[message.guild.id]):
-                if new <= t:
+                if new == t:
+                    t.members |= new.members
+                    return
+                elif new < t:
                     tasks.insert(i, new)
                     return
             tasks.append(new)
@@ -159,26 +161,12 @@ class CmdCog(commands.Cog):
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
 
-        def merge(merged_queue, task):
-            if merged_queue:
-                if (last := merged_queue[-1]).id == task.id:
-                    last.members |= task.members
-                else:
-                    embed.add_field(
-                        name=f"{'強制切断' if last.type == Task.DISCONNECT else '3分前連絡'}: "
-                            + last.datetime.strftime("%m-%d %H:%M"),
-                        value=' '.join(map(lambda m: m.mention, last.members)))
-                    merged_queue.append(task)
-            else:
-                embed.add_field(
-                    name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
-                        + task.datetime.strftime("%m-%d %H:%M"),
-                    value=' '.join(map(lambda m: m.mention, task.members)))
-                merged_queue.append(task)
+        for task in self.tasks[ctx.guild.id]:
+            embed.add_field(
+                name=f"{'強制切断' if task.type == Task.DISCONNECT else '3分前連絡'}: "
+                    + task.datetime.strftime("%m-%d %H:%M"),
+                value=' '.join(map(lambda m: m.mention, task.members)))
 
-            return merged_queue
-
-        self.tasks[ctx.guild.id] = reduce(merge, self.tasks[ctx.guild.id], deque())
         await ctx.reply(embed=embed)
 
     @commands.command()
