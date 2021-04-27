@@ -95,7 +95,7 @@ class CmdCog(commands.Cog):
                 Task.DISCONNECT)
 
         def insert_task(tasks, new):
-            for i, t in enumerate(self.tasks[message.guild.id]):
+            for i, t in enumerate(tasks):
                 if new == t:
                     t.members |= new.members
                     return
