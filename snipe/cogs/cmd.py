@@ -72,6 +72,11 @@ class CmdCog(commands.Cog):
         self.loop.stop()
 
     async def add_task(self, message, hour, minute, absolute=True):
+        members =  set(filter(lambda m: m.id != self.bot.user.id and m.status != discord.Status.offline,
+                              message.channel.members)) \
+                   if message.mention_everyone() else \
+                   set(filter(lambda m: m.id != self.bot.user.id, message.mentions))
+
         now = datetime.now(self.JST)
 
         if absolute:
@@ -83,7 +88,7 @@ class CmdCog(commands.Cog):
                 + timedelta(
                     days=int(_hour < 24 and time(hour=_hour, minute=_minute) < now.time()),
                     hours=_hour, minutes=_minute),
-                set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
+                members | set([message.author]),
                 Task.DISCONNECT)
         else:
             _hour = int(hour) if hour else 0
@@ -91,7 +96,7 @@ class CmdCog(commands.Cog):
 
             disconnect_task = Task(
                 now + timedelta(hours=_hour, minutes=_minute),
-                set(filter(lambda m: m.id != self.bot.user.id, message.mentions)) | set([message.author]),
+                members | set([message.author]),
                 Task.DISCONNECT)
 
         def insert_task(tasks, new):
