@@ -179,7 +179,7 @@ class CmdCog(commands.Cog):
     async def log(self, ctx):
         for guild_id, tasks in self.tasks.items():
             _guild = await self.bot.fetch_guild(guild_id)
-            embed = discord.Embed(title="射殺予定[管理者モード]", description=_guild.name)
+            embed = discord.Embed(title=_guild.name, description=_guild.id)
 
             for task in tasks:
                 embed.add_field(
