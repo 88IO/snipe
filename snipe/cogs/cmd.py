@@ -3,7 +3,6 @@ import asyncio
 import re
 from discord.ext import commands, tasks
 from datetime import datetime, time, timezone, timedelta
-from itertools import chain
 from collections import deque
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
@@ -33,41 +32,41 @@ class CmdCog(commands.Cog):
     @tasks.loop(seconds=3)
     async def loop(self):
         print(self.tasks)
-        tasks_values = self.tasks.values()
 
-        async def get_executable(guild_tasks):
+        async def run_executable(guild_tasks):
             now = datetime.now(self.JST)
 
             executable_tasks = (guild_tasks.popleft() for _ in range(len(guild_tasks)) if guild_tasks[0].datetime <= now)
 
-            return executable_tasks
+            for task in executable_tasks:
+                for member in task.members:
+                    if member.voice:
+                        if task.type == Task.DISCONNECT:
+                            print("DISCONNECT: " + member.display_name)
+                            try:
+                                await member.send(f"{task.datetime.strftime('%m-%d %H:%M:%S')}に通話を強制切断しました")
+                            except discord.errors.HTTPException:
+                                pass
+                            await member.move_to(None)
+                        elif task.type == Task.BEFORE_3MIN:
+                            print("BEFORE_3MIN: " + member.display_name)
+                            _vc = self.vc[member.guild.id]
+                            if _vc and _vc.is_connected() and not _vc.is_playing():
+                                _vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
+                            try:
+                                await member.send("3分後に通話を強制切断します")
+                            except discord.errors.HTTPException:
+                                pass
 
-        executable_tasks = chain.from_iterable(
-                await asyncio.gather(*(get_executable(guild_tasks) for guild_tasks in tasks_values)))
+        _ = await asyncio.gather(*(run_executable(guild_tasks) for guild_tasks in self.tasks.values()))
 
-        for task in executable_tasks:
-            for member in task.members:
-                if member.voice:
-                    if task.type == Task.DISCONNECT:
-                        print("DISCONNECT: " + member.display_name)
-                        try:
-                            await member.send(f"{task.datetime.strftime('%m-%d %H:%M:%S')}に通話を強制切断しました")
-                        except discord.errors.HTTPException:
-                            pass
-                        await member.move_to(None)
-                    elif task.type == Task.BEFORE_3MIN:
-                        print("BEFORE_3MIN: " + member.display_name)
-                        #_vc = self.vc[member.guild.id]
-                        #if _vc and _vc.is_connected():
-                        #    _vc.play(discord.FFmpegPCMAudio("snipe/sounds/3min.wav"))
-                        try:
-                            await member.send("3分後に通話を強制切断します")
-                        except discord.errors.HTTPException:
-                            pass
-
-        for guild_tasks in tasks_values:
+        for guild_id, guild_tasks in self.tasks.items():
             if len(guild_tasks):
                 return
+            else:
+                _vc = self.vc[guild_id]
+                if _vc and _vc.is_connected():
+                    await _vc.disconnect()
 
         self.loop.stop()
 
@@ -203,7 +202,7 @@ class CmdCog(commands.Cog):
     @commands.command()
     async def connect(self, ctx):
         print("call connect()")
-        if ctx.author.voice:
+        if ctx.author.voice and self.tasks[ctx.guild.id]:
             self.vc[ctx.guild.id] = await ctx.author.voice.channel.connect()
             self.vc[ctx.guild.id].play(discord.FFmpegPCMAudio("snipe/sounds/connect.wav"), after=lambda _: print("connected"))
 
@@ -212,7 +211,6 @@ class CmdCog(commands.Cog):
         print("call disconnect()")
         _vc = self.vc[ctx.guild.id]
         if _vc and _vc.is_connected():
-            _vc.play(discord.FFmpegPCMAudio("snipe/sounds/disconnect.wav"), after=lambda _: print("disconnected"))
             await _vc.disconnect()
 
     @commands.command()
