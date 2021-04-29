@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 import traceback
 from .config import TOKEN
@@ -21,6 +20,8 @@ class Bot(commands.Bot):
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
+            return
+        elif isinstance(error, commands.errors.NoPrivateMessage):
             return
         raise error
 
