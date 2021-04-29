@@ -72,7 +72,7 @@ class CmdCog(commands.Cog):
         self.loop.stop()
 
     async def add_task(self, message, hour, minute, absolute=True):
-        members =  set(filter(lambda m: m.id != self.bot.user.id and m.status != discord.Status.offline,
+        members =  set(filter(lambda m: not m.bot and m.status != discord.Status.offline,
                               message.channel.members)) \
                    if message.mention_everyone() else \
                    set(filter(lambda m: m.id != self.bot.user.id, message.mentions))
