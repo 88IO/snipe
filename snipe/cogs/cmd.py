@@ -125,8 +125,8 @@ class CmdCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        # 自身またDMの場合は無視
-        if message.author == self.bot.user or not isinstance(message.channel, discord.channel.TextChannel):
+        # 自身の場合は無視
+        if message.author == self.bot.user:
             return
         if self.bot.user.mentioned_in(message):
             content = re.sub(r"^<@!?\d+>\s+", "", message.content)
@@ -162,7 +162,6 @@ class CmdCog(commands.Cog):
                     await self.add_task(message=message, hour=hour, minute=minute, absolute=False)
 
     @commands.command()
-    @commands.guild_only()
     async def show(self, ctx):
         embed = discord.Embed(title="射殺予定", description="snipebotの通話切断予定表です")
 
@@ -190,7 +189,6 @@ class CmdCog(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command()
-    @commands.guild_only()
     async def clear(self, ctx):
         members = set(filter(lambda m: m.id != self.bot.user.id, ctx.message.mentions)) | set([ctx.author])
 
@@ -202,7 +200,6 @@ class CmdCog(commands.Cog):
         await ctx.reply(f"{', '.join(map(lambda m: m.mention, members))}を予定から削除しました")
 
     @commands.command()
-    @commands.guild_only()
     async def connect(self, ctx):
         print("call connect()")
         if ctx.author.voice and self.tasks[ctx.guild.id]:
@@ -210,7 +207,6 @@ class CmdCog(commands.Cog):
             self.vc[ctx.guild.id].play(discord.FFmpegPCMAudio("snipe/sounds/connect.wav"), after=lambda _: print("connected"))
 
     @commands.command()
-    @commands.guild_only()
     async def disconnect(self, ctx):
         print("call disconnect()")
         _vc = self.vc[ctx.guild.id]
@@ -218,7 +214,6 @@ class CmdCog(commands.Cog):
             await _vc.disconnect()
 
     @commands.command()
-    @commands.guild_only()
     async def reserve(self, ctx, *args):
         t = " ".join(map(str, args))
         if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
@@ -230,7 +225,6 @@ class CmdCog(commands.Cog):
             await self.add_task(message=ctx.message, hour=hour, minute=minute, absolute=True)
 
     @commands.command()
-    @commands.guild_only()
     async def reservein(self, ctx, *args):
         t = " ".join(map(str, args))
         if match := re.match(r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
