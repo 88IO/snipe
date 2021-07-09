@@ -65,7 +65,7 @@ class SlashCmdCog(commands.Cog):
             insert_task(self.tasks[ctx.guild_id], before3min_task)
 
         await ctx.send(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
-                       + f"{ctx.author}を切断します")
+                       + f"{ctx.author.mention}を切断します")
 
         if not self.bot.execute.is_running():
             self.bot.execute.start()
