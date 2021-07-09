@@ -1,9 +1,10 @@
 import discord
 import asyncio
+import traceback
 from discord.ext import commands, tasks
+from discord_slash import SlashCommand
 from datetime import timedelta, timezone, datetime
 from collections import deque
-import traceback
 from .config import TOKEN
 from .task import Task
 
@@ -18,6 +19,7 @@ EXTENSIONS = [
 class Bot(commands.Bot):
     def __init__(self, command_prefix, intents):
         super().__init__(command_prefix=command_prefix, intents=intents)
+        self.slash = SlashCommand(self)
         self.timezone = timezone(timedelta(hours=+9), 'JST')
         self.tasks = {}
         self.vc = {}
