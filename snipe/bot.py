@@ -24,14 +24,14 @@ class Bot(commands.Bot):
         self.tasks = {}
         self.vc = {}
 
+        self._slash = SlashCommand(self, sync_commands=True)
+
         for cog in EXTENSIONS:
             try:
                 self.load_extension(cog)
             except Exception:
                 print("Failed to load extension:", cog)
                 traceback.print_exc()
-
-        self._slash = SlashCommand(self, sync_commands=True)
 
     async def on_command_error(self, _, error):
         if isinstance(error, commands.CommandNotFound):
