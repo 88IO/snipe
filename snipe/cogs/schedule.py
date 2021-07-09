@@ -2,6 +2,9 @@ import discord
 import asyncio
 import re
 from discord.ext import commands
+from discord_slash.utils.manage_components import (
+        create_button, create_actionrow, wait_for_component)
+from discord_slash import ButtonStyle, ComponentContext
 from datetime import datetime, time, timedelta
 from ..task import Task
 from ..emoji import ALARM_CLOCK, TIMER_CLOCK
@@ -12,6 +15,10 @@ class ScheduleCog(commands.Cog):
         self.bot = bot
         self.tasks = {}
         self.vc = {}
+        self.buttons = [
+            create_button(style=ButtonStyle.green, label="時刻", custom_id="snipe_absolute", emoji=ALARM_CLOCK),
+            create_button(style=ButtonStyle.blue, label="時間後", custom_id="snipe_relative", emoji=TIMER_CLOCK)
+        ]
         self.time_pattern = r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
                             + r"(?:(?P<minute>\d{1,2})(?:分|mins|min|m|Mins|Min|M|))?"
 
@@ -84,31 +91,23 @@ class ScheduleCog(commands.Cog):
             if match := re.match(self.time_pattern, content):
                 if not any(match.group("hour", "minute")):  return
 
-                # アラーム絵文字（絶対）
-                await message.add_reaction(ALARM_CLOCK)
-                # タイマー絵文字（相対）
-                await message.add_reaction(TIMER_CLOCK)
-
-                def reaction_check(reaction, user):
-                    return (user == message.author
-                            and reaction.message == message
-                            and reaction.emoji in [ALARM_CLOCK, TIMER_CLOCK])
+                select_msg = await message.reply("時間指定方法の選択", components=[create_actionrow(*self.buttons)])
 
                 try:
-                    reaction, _ = await self.bot.wait_for("reaction_add", timeout=60, check=reaction_check)
+                    btn_ctx: ComponentContext = await wait_for_component(
+                            self.bot, components=self.buttons, timeout=60)
                 except asyncio.TimeoutError:
                     print("timeout")
+                    await select_msg.delete()
                     await message.reply("タイムアウトしました")
                     return
 
-                await message.remove_reaction(ALARM_CLOCK, self.bot.user)
-                await message.remove_reaction(TIMER_CLOCK, self.bot.user)
+                await select_msg.delete()
 
                 hour, minute = match.group("hour", "minute")
-                if reaction.emoji == ALARM_CLOCK:
+                if btn_ctx.custom_id == "snipe_absolute":
                     await self.add_task(message=message, hour=hour, minute=minute, absolute=True)
-
-                elif reaction.emoji == TIMER_CLOCK:
+                elif btn_ctx.custom_id == "snipe_relative":
                     await self.add_task(message=message, hour=hour, minute=minute, absolute=False)
 
     @commands.command()

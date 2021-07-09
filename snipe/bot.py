@@ -57,7 +57,7 @@ class Bot(commands.Bot):
         print(self.tasks)
 
         async def run_executable(guild_tasks):
-            now = datetime.now(self.JST)
+            now = datetime.now(self.timezone)
 
             executable_tasks = (guild_tasks.popleft() for _ in range(len(guild_tasks))
                                 if guild_tasks[0].datetime <= now)
