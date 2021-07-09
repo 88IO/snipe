@@ -102,7 +102,6 @@ def main():
     intents.guild_reactions = True
 
     bot = Bot(command_prefix=commands.when_mentioned, intents=intents)
-    slash = SlashCommand(bot)
     bot.run(TOKEN)
 
 if __name__ == "__main__":
