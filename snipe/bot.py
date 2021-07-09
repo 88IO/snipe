@@ -53,7 +53,7 @@ class Bot(commands.Bot):
         self.vc[guild.id] = None
 
     @tasks.loop(seconds=3)
-    async def loop(self):
+    async def execute(self):
         print(self.tasks)
 
         async def run_executable(guild_tasks):
@@ -91,6 +91,8 @@ class Bot(commands.Bot):
                 _vc = self.vc[guild_id]
                 if _vc and _vc.is_connected():
                     await _vc.disconnect()
+
+        self.loop.stop()
 
 
 def main():

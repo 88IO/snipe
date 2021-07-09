@@ -67,8 +67,8 @@ class SlashCmdCog(commands.Cog):
         await ctx.send(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
                        + f"{ctx.author}を切断します")
 
-        if not self.bot.loop.is_running():
-            self.bot.loop.start()
+        if not self.bot.execute.is_running():
+            self.bot.execute.start()
 
     @cog_ext.cog_slash(name="reserve", description="指定した時刻に通話を強制切断します",
             options=[

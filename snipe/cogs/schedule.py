@@ -78,8 +78,8 @@ class ScheduleCog(commands.Cog):
         await message.reply(f"{disconnect_task.datetime.strftime('%m-%d %H:%M:%S')}に"
                 + f"{', '.join(map(lambda m: m.mention, disconnect_task.members))}を切断します")
 
-        if not self.bot.loop.is_running():
-            self.bot.loop.start()
+        if not self.bot.execute.is_running():
+            self.bot.execute.start()
 
     @commands.Cog.listener()
     async def on_message(self, message):
