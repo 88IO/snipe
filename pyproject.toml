@@ -9,6 +9,7 @@ python = "^3.9"
 "discord.py" = {extras = ["voice"], version = "^1.6.0"}
 typing = "^3.7.4"
 python-dotenv = "^0.16.0"
+discord-py-slash-command = "^2.3.2"
 
 [tool.poetry.dev-dependencies]
 jedi = "^0.18.0"
