@@ -20,7 +20,6 @@ EXTENSIONS = [
 class Bot(commands.Bot):
     def __init__(self, command_prefix, intents):
         super().__init__(command_prefix=command_prefix, intents=intents)
-        self.slash = SlashCommand(self)
         self.timezone = timezone(timedelta(hours=+9), 'JST')
         self.tasks = {}
         self.vc = {}
@@ -31,6 +30,8 @@ class Bot(commands.Bot):
             except Exception:
                 print("Failed to load extension:", cog)
                 traceback.print_exc()
+
+        self._slash = SlashCommand(self, sync_commands=True)
 
     async def on_command_error(self, _, error):
         if isinstance(error, commands.CommandNotFound):
