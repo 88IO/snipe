@@ -110,7 +110,7 @@ class SlashCmdCog(commands.Cog):
             return task.members
 
         self.tasks[ctx.guild_id] = deque(filter(remove_members, self.tasks[ctx.guild_id]))
-        await ctx.send(f"{ctx.author}を予定から削除しました")
+        await ctx.send(f"{ctx.author.mention}を予定から削除しました")
 
     @cog_ext.cog_slash(name="schedule", description="通話の切断予定を表示します")
     async def schedule(self, ctx: SlashContext):
