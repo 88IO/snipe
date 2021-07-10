@@ -10,7 +10,7 @@
 
 ## デモ
 
-![Peek](https://user-images.githubusercontent.com/36104864/115669212-fcf62d80-a382-11eb-80b9-94219dcc40a8.gif)
+![Peek](https://user-images.githubusercontent.com/36104864/125148662-edf76e00-e16e-11eb-8fb6-1022e7a2ed4c.gif)
 
 ## 機能
 
@@ -39,7 +39,15 @@ pip install poetry
 
 #### 1. Discord Botを作成 & サーバーに招待
 
-必要権限
+**インテント（Botタブ）：**
+
+![](https://user-images.githubusercontent.com/36104864/125148766-87bf1b00-e16f-11eb-9806-e6f84d2b0733.png)
+
+**スコープ（OAuth2タブ）：**
+
+![](https://user-images.githubusercontent.com/36104864/125148742-5e05f400-e16f-11eb-8593-e2ab853a000d.png)
+
+**権限（OAuth2タブ）：**
 
 ![](https://user-images.githubusercontent.com/36104864/116031938-b746a700-a699-11eb-90b3-4586bc77e2fe.png)
 
@@ -98,10 +106,20 @@ Botを`snipebot`として進める。（`@snipebot`はメンション）
 @snipebot XX:XX
 ```
 
-1. Botが上記メッセージに⏰（アラーム）と ⏲️（タイマー）のリアクションを付与
-2. 1分以内にいずれかの絵文字を選択
-   - ⏰（アラーム）の場合、指定時刻に予約
-   - ⏲️（タイマー）の場合、指定時間後に予約
+1. Botが上記メッセージに「⏰時刻」と 「⏲️時間後」のボタン付きのメッセージを返信
+2. 1分以内にいずれかのボタンを選択
+   - 「⏰時刻」の場合、指定時刻に予約
+   -  「⏲️時間後」の場合、指定時間後に予約
+
+**スラッシュコマンド**（v0.4.0~）
+
+```
+/reserve XX:XX
+```
+
+```
+/reservein XX:XX
+```
 
 #### ※ 時間指定の例
 
@@ -127,10 +145,18 @@ Botを`snipebot`として進める。（`@snipebot`はメンション）
 @snipebot show
 ```
 
+```
+/schedule
+```
+
 **自分の予約を全キャンセル**（コマンド末尾のメンションで複数ユーザ指定）
 
 ```
 @snipebot clear
+```
+
+```
+/cancel
 ```
 
 ~~**同一時刻の予約を統合**（ベータ）~~
@@ -158,6 +184,8 @@ Botを`snipebot`として進める。（`@snipebot`はメンション）
 - [ ] タイムゾーンの複数対応
 - [ ] 音声周りの見直し
 - [x] 予約統合方法の見直し
+- [x] スラッシュコマンド対応
+- [x] ボタン対応
 
 ## ライセンス
 
