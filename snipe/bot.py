@@ -92,7 +92,7 @@ class Bot(commands.Bot):
                 if _vc and _vc.is_connected():
                     await _vc.disconnect()
 
-        self.loop.stop()
+        self.execute.stop()
 
 
 def main():
