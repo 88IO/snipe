@@ -12,7 +12,7 @@ class OwnerCog(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.tasks = self.bot.tasks
-        print("show cog is ready.")
+        print("owner cog is ready.")
 
     @commands.command()
     @commands.is_owner()
