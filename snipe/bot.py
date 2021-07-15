@@ -14,7 +14,8 @@ EXTENSIONS = [
     "snipe.cogs.slash_schedule",
     "snipe.cogs.voice",
     "snipe.cogs.show",
-    "snipe.cogs.cancel"
+    "snipe.cogs.cancel",
+    "snipe.cogs.owner"
 ]
 
 class Bot(commands.Bot):
