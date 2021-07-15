@@ -127,3 +127,7 @@ class SlashCmdCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(SlashCmdCog(bot))
+
+
+def teardown(_):
+    print("slash command cog is unloaded.")

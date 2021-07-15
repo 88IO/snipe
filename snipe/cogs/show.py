@@ -28,3 +28,7 @@ class ShowCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(ShowCog(bot))
+
+
+def teardown(_):
+    print("show cog is unloaded.")

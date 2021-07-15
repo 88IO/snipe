@@ -30,3 +30,7 @@ class VoiceCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(VoiceCog(bot))
+
+
+def teardown(_):
+    print("voice cog is unloaded.")

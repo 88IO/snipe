@@ -42,3 +42,7 @@ class OwnerCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(OwnerCog(bot))
+
+
+def teardown(_):
+    print("owner cog is unloaded.")

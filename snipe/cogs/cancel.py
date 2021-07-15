@@ -26,3 +26,7 @@ class CancelCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(CancelCog(bot))
+
+
+def teardown(_):
+    print("cancel cog is unloaded.")

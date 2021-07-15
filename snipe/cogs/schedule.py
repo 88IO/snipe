@@ -133,3 +133,7 @@ class ScheduleCog(commands.Cog):
 
 def setup(bot):
     bot.add_cog(ScheduleCog(bot))
+
+
+def teardown(_):
+    print("schedule cog is unloaded.")
