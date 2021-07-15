@@ -6,7 +6,7 @@ from ..task import Task
 class ShowCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tasks = {}
+        self.tasks = bot.tasks
 
     @commands.Cog.listener()
     async def on_ready(self):

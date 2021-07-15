@@ -7,7 +7,7 @@ from ..task import Task
 class OwnerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tasks = {}
+        self.tasks = bot.tasks
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -35,8 +35,9 @@ class OwnerCog(commands.Cog):
         cog = "snipe.cogs." + c
         try:
             self.bot.reload_extension(cog)
+            print("reload:", cog)
         except Exception:
-            print("Failed to load extension:", cog)
+            print("Failed to reload extension:", cog)
             traceback.print_exc()
 
 

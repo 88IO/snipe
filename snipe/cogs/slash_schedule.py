@@ -11,8 +11,8 @@ import re
 class SlashCmdCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tasks = {}
-        self.vc = {}
+        self.tasks = bot.tasks
+        self.vc = bot.vc
         self.time_pattern = r"(?:(?P<hour>\d{1,2})(?:時間|時|:|：|hours|hour|h|Hours|Hour|H|\s^@))?"\
                             + r"(?:(?P<minute>\d{1,2})(?:分|mins|min|m|Mins|Min|M|))?"
 

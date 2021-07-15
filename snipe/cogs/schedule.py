@@ -13,8 +13,8 @@ from ..emoji import ALARM_CLOCK, TIMER_CLOCK
 class ScheduleCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tasks = {}
-        self.vc = {}
+        self.tasks = bot.tasks
+        self.vc = bot.vc
         self.buttons = [
             create_button(style=ButtonStyle.green, label="時刻", custom_id="snipe_absolute", emoji=ALARM_CLOCK),
             create_button(style=ButtonStyle.blue, label="時間後", custom_id="snipe_relative", emoji=TIMER_CLOCK)

@@ -5,8 +5,8 @@ from discord.ext import commands
 class VoiceCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.tasks = {}
-        self.vc = {}
+        self.tasks = bot.tasks
+        self.vc = bot.vc
 
     @commands.Cog.listener()
     async def on_ready(self):
